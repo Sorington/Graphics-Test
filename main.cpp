@@ -18,7 +18,7 @@ static const GLfloat g_vertex_buffer_data[] = {
 
 int main()
 {
-    sf::Window *window = new sf::Window(sf::VideoMode(512, 512, 32), "Graphics Test", sf::Style::Default, sf::ContextSettings(32, 8, 4, 3, 1));
+    sf::Window *window = new sf::Window(sf::VideoMode(512, 512, 32), "Graphics Test", sf::Style::Default, sf::ContextSettings(32, 8, 4, 4, 2));
 
     // Initialize GLEW
     glewExperimental= true; // Needed in core profile
