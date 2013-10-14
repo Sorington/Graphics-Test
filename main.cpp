@@ -236,6 +236,9 @@ int main()
     sf::Texture houseTexture;
     houseTexture.loadFromFile("resources/textures/casa.png");
 
+    sf::Clock c;
+    c.restart();
+
     while (window->isOpen())
     {
         sf::Event event;
@@ -259,9 +262,11 @@ int main()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glm::vec3 eyePos(7, 8, 15);
+
         glm::mat4 Proj = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.0f);
 
-        glm::mat4 View = glm::lookAt(glm::vec3(10, 10, 15), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+        glm::mat4 View = glm::lookAt(eyePos, glm::vec3(3, 1, 2), glm::vec3(0, 1, 0));
 
         glm::mat4 Model = glm::mat4(1.0f);
 
@@ -284,12 +289,20 @@ int main()
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-        glm::vec3 dirLight(-1.0, -0.4, 0.0);
+      //  float t = c.getElapsedTime().asSeconds();
+        glm::vec3 dirLight(3.0, -1.0, -1.0);
+        glm::vec3 ptLight(3.5, 2.0, 4);
 
         glUniform1i(textureID, 0);
 
-        GLuint dirLightID = glGetUniformLocation(shader, "directionalLight");
-        glUniform3f(dirLightID, dirLight.x, dirLight.y, dirLight.z);
+        GLuint dirLightID = glGetUniformLocation(shader, "dirLight_in");
+        glUniform3fv(dirLightID, 1, (float*) &dirLight);
+
+        GLuint ptLightID = glGetUniformLocation(shader, "ptLightPos");
+        glUniform3f(ptLightID, ptLight.x, ptLight.y, ptLight.z);
+
+        GLuint eyePosID = glGetUniformLocation(shader, "eyePos");
+        glUniform3f(eyePosID, eyePos.x, eyePos.y, eyePos.z);
 
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
