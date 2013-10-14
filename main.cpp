@@ -191,7 +191,7 @@ GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_pat
 
 int main()
 {
-    sf::Window *window = new sf::Window(sf::VideoMode(800, 600, 32), "Graphics Test", sf::Style::Default, sf::ContextSettings(32, 8, 4, 4, 2));
+    sf::Window *window = new sf::Window(sf::VideoMode(920, 690, 32), "Graphics Test", sf::Style::Default, sf::ContextSettings(32, 8, 4, 4, 2));
 
     // Initialize GLEW
     glewExperimental= true; // Needed in core profile
@@ -261,13 +261,15 @@ int main()
             }
         }
 
+        //float t = c.getElapsedTime().asSeconds();
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::vec3 eyePos(7, 8, 15);
+        glm::vec3 eyePos(7, 4, 15);
 
         glm::mat4 Proj = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.0f);
 
-        glm::mat4 View = glm::lookAt(eyePos, glm::vec3(3, 1, 2), glm::vec3(0, 1, 0));
+        glm::mat4 View = glm::lookAt(eyePos, glm::vec3(3.5, 1, 4), glm::vec3(0, 1, 0));
 
         glm::mat4 Model = glm::mat4(1.0f);
 
@@ -290,7 +292,6 @@ int main()
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-      //  float t = c.getElapsedTime().asSeconds();
         glm::vec3 dirLight(3.0, -1.0, -1.0);
         glm::vec3 ptLight(3.5, 2.0, 4);
 
@@ -300,10 +301,10 @@ int main()
         glUniform3fv(dirLightID, 1, (float*) &dirLight);
 
         GLuint ptLightID = glGetUniformLocation(shader, "ptLightPos");
-        glUniform3f(ptLightID, ptLight.x, ptLight.y, ptLight.z);
+        glUniform3fv(ptLightID, 1, (float*) &ptLight);
 
         GLuint eyePosID = glGetUniformLocation(shader, "eyePos");
-        glUniform3f(eyePosID, eyePos.x, eyePos.y, eyePos.z);
+        glUniform3fv(eyePosID, 1, (float*) &eyePos);
 
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
