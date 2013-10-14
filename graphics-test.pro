@@ -1,7 +1,7 @@
 TEMPLATE = app
 CONFIG -= qt
 
-LIBS += -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lGL -lGLU -lBox2D -lGLEW
+LIBS += -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lGL -lGLU -lGLEW
 
 SOURCES += main.cpp
 
