@@ -269,9 +269,13 @@ int main()
 
         glUseProgram(shader);
 
-        GLuint matID = glGetUniformLocation(shader, "MVP");
+        GLuint matMVPID = glGetUniformLocation(shader, "MVP");
+        GLuint matMID = glGetUniformLocation(shader, "M");
+        GLuint matVID = glGetUniformLocation(shader, "V");
 
-        glUniformMatrix4fv(matID, 1, GL_FALSE, &MVP[0][0]);
+        glUniformMatrix4fv(matMVPID, 1, GL_FALSE, &MVP[0][0]);
+        glUniformMatrix4fv(matMID, 1, GL_FALSE, &Model[0][0]);
+        glUniformMatrix4fv(matVID, 1, GL_FALSE, &View[0][0]);
 
         GLuint textureID = glGetUniformLocation(shader, "textureSampler");
         glActiveTexture(GL_TEXTURE0);
@@ -280,7 +284,12 @@ int main()
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
+        glm::vec3 dirLight(-1.0, -0.4, 0.0);
+
         glUniform1i(textureID, 0);
+
+        GLuint dirLightID = glGetUniformLocation(shader, "directionalLight");
+        glUniform3f(dirLightID, dirLight.x, dirLight.y, dirLight.z);
 
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
