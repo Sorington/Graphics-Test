@@ -147,6 +147,16 @@ int main()
         window->display();
     }
 
+    glDeleteBuffers(1, &vertexbuffer);
+    glDeleteBuffers(1, &uvbuffer);
+    glDeleteBuffers(1, &normalbuffer);
+    glDeleteBuffers(1, &tangentbuffer);
+    glDeleteBuffers(1, &bitangentbuffer);
+
+    glDeleteProgram(shader);
+    glDeleteProgram(normalShader);
+    glDeleteVertexArrays(1, &VertexArrayID);
+
     return 0;
 }
 
