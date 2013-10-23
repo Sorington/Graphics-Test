@@ -27,7 +27,7 @@ void main()
     float ptLightReflect = clamp(dot(e, r), 0, 1);
 
     float dirLightPower = 1.0;
-    float ptLightPower = 4.0;
+    float ptLightPower = 2.0;
 
     vec3 dirLightColor = vec3(0.8, 0.6, 0.4);
     vec3 ptLightColor = vec3(1.0, 1.0, 0.0);

@@ -161,3 +161,77 @@ GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_pat
 
     return ProgramID;
 }
+
+bool DrawModel(glm::mat4& Model, glm::mat4& View, glm::mat4& Proj, GLuint& shader, sf::Texture& texture, glm::vec3& eyePos, int vertCount)
+{
+    glm::mat4 MVP = Proj*View*Model;
+
+    glUseProgram(shader);
+
+    GLuint matMVPID = glGetUniformLocation(shader, "MVP");
+    GLuint matMID = glGetUniformLocation(shader, "M");
+    GLuint matVID = glGetUniformLocation(shader, "V");
+
+    glUniformMatrix4fv(matMVPID, 1, GL_FALSE, &MVP[0][0]);
+    glUniformMatrix4fv(matMID, 1, GL_FALSE, &Model[0][0]);
+    glUniformMatrix4fv(matVID, 1, GL_FALSE, &View[0][0]);
+
+    GLuint textureID = glGetUniformLocation(shader, "textureSampler");
+    glActiveTexture(GL_TEXTURE0);
+    sf::Texture::bind(&texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    glm::vec3 dirLight(3.0, -1.0, -1.0);
+    glm::vec3 ptLight(3.5, 2.0, 4);
+
+    glUniform1i(textureID, 0);
+
+    GLuint dirLightID = glGetUniformLocation(shader, "dirLight_in");
+    glUniform3fv(dirLightID, 1, (float*) &dirLight);
+
+    GLuint ptLightID = glGetUniformLocation(shader, "ptLightPos");
+    glUniform3fv(ptLightID, 1, (float*) &ptLight);
+
+    GLuint eyePosID = glGetUniformLocation(shader, "eyePos");
+    glUniform3fv(eyePosID, 1, (float*) &eyePos);
+
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glVertexAttribPointer(
+       0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+       3,                  // size
+       GL_FLOAT,           // type
+       GL_FALSE,           // normalized?
+       0,                  // stride
+       (void*)0            // array buffer offset
+    );
+
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+    glVertexAttribPointer(
+       1,                  // attribute 1. No particular reason for 1, but must match the layout in the shader.
+       2,                  // size
+       GL_FLOAT,           // type
+       GL_FALSE,           // normalized?
+       0,                  // stride
+       (void*)0            // array buffer offset
+    );
+
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+    glDrawArrays(GL_TRIANGLES, 0, vertCount*3);
+
+    glDisableVertexAttribArray(2);
+
+    glDisableVertexAttribArray(1);
+
+    glDisableVertexAttribArray(0);
+
+    glUseProgram(0);
+
+    return true;
+}
