@@ -8,7 +8,9 @@ SOURCES += main.cpp \
 
 OTHER_FILES += \
     shaders/vert.glsl \
-    shaders/frag.glsl
+    shaders/frag.glsl \
+    shaders/fragNormal.glsl \
+    shaders/vertNormal.glsl
 
 HEADERS += \
     tools.h

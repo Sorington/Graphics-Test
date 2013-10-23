@@ -6,6 +6,8 @@
 GLuint normalbuffer;
 GLuint uvbuffer;
 GLuint vertexbuffer;
+GLuint tangentbuffer;
+GLuint bitangentbuffer;
 
 int main()
 {
@@ -39,9 +41,10 @@ int main()
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
 
-    std::vector<glm::vec3> vertices, normals;
+    std::vector<glm::vec3> vertices, normals, tangents, bitangents;
     std::vector<glm::vec2> texCoords;
     loadOBJ("resources/models/casa.obj", vertices, texCoords, normals);
+    computeTangentBasis(vertices, texCoords, normals, tangents, bitangents);
 
     glGenBuffers(1, &vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -55,13 +58,25 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
     glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
 
-    GLuint shader = LoadShaders("shaders/vert.glsl", "shaders/frag.glsl");
+    glGenBuffers(1, &tangentbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+    glBufferData(GL_ARRAY_BUFFER, tangents.size()*sizeof(glm::vec3), &tangents[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &tangentbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+    glBufferData(GL_ARRAY_BUFFER, bitangents.size()*sizeof(glm::vec3), &bitangents[0], GL_STATIC_DRAW);
+
+    GLuint shader = loadShaders("shaders/vert.glsl", "shaders/frag.glsl");
+    GLuint normalShader = loadShaders("shaders/vertNormal.glsl", "shaders/fragNormal.glsl");
 
     sf::Texture crateTexture;
     crateTexture.loadFromFile("resources/textures/crate.jpg");
 
     sf::Texture houseTexture;
     houseTexture.loadFromFile("resources/textures/casa.png");
+
+    sf::Texture houseNormalMap;
+    houseNormalMap.loadFromFile("resources/normalMaps/casaNormal.jpg");
 
     sf::Clock c;
     c.restart();
@@ -140,11 +155,11 @@ int main()
 
         glm::mat4 Model = glm::mat4(1.0f);
 
-        DrawModel(Model, View, Proj, shader, houseTexture, eyePos, vertices.size());
+        drawModel(Model, View, Proj, normalShader, houseTexture, eyePos, vertices.size(), true, houseNormalMap);
 
         Model = glm::translate(20.0f, 0.0f, 0.0f)*glm::mat4(1.0f);
 
-        DrawModel(Model, View, Proj, shader, houseTexture, eyePos, vertices.size());
+        drawModel(Model, View, Proj, shader, houseTexture, eyePos, vertices.size(), false, houseNormalMap);
 
         window->display();
     }

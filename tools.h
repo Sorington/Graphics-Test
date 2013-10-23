@@ -21,11 +21,15 @@ using namespace std;
 extern GLuint normalbuffer;
 extern GLuint uvbuffer;
 extern GLuint vertexbuffer;
+extern GLuint tangentbuffer;
+extern GLuint bitangentbuffer;
 
 bool loadOBJ(const char * path, std::vector<glm::vec3> & out_vertices, std::vector<glm::vec2> & out_uvs, std::vector<glm::vec3> & out_normals);
 
-GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_path);
+GLuint loadShaders(const char * vertex_file_path, const char * fragment_file_path);
 
-bool DrawModel(glm::mat4& Model, glm::mat4& View, glm::mat4& Proj, GLuint& shader, sf::Texture& texture, glm::vec3& eyePos, int vertCount);
+bool drawModel(glm::mat4& Model, glm::mat4& View, glm::mat4& Proj, GLuint& shader, sf::Texture& texture, glm::vec3& eyePos, int vertCount, bool useNormalMap, sf::Texture normalMap);
+
+void computeTangentBasis(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& normals, vector<glm::vec3>& tangents, vector<glm::vec3>& bitangents);
 
 #endif // TOOLS_H

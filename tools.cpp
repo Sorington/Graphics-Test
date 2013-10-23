@@ -86,7 +86,7 @@ bool loadOBJ(const char * path, std::vector<glm::vec3> & out_vertices, std::vect
     return true;
 }
 
-GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_path){
+GLuint loadShaders(const char * vertex_file_path, const char * fragment_file_path){
 
     // Create the shaders
     GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -162,7 +162,7 @@ GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_pat
     return ProgramID;
 }
 
-bool DrawModel(glm::mat4& Model, glm::mat4& View, glm::mat4& Proj, GLuint& shader, sf::Texture& texture, glm::vec3& eyePos, int vertCount)
+bool drawModel(glm::mat4& Model, glm::mat4& View, glm::mat4& Proj, GLuint& shader, sf::Texture& texture, glm::vec3& eyePos, int vertCount, bool useNormalMap, sf::Texture normalMap)
 {
     glm::mat4 MVP = Proj*View*Model;
 
@@ -177,16 +177,31 @@ bool DrawModel(glm::mat4& Model, glm::mat4& View, glm::mat4& Proj, GLuint& shade
     glUniformMatrix4fv(matVID, 1, GL_FALSE, &View[0][0]);
 
     GLuint textureID = glGetUniformLocation(shader, "textureSampler");
+
     glActiveTexture(GL_TEXTURE0);
     sf::Texture::bind(&texture);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
+    glUniform1i(textureID, 0);
+
+    if (useNormalMap)
+    {
+        GLuint normalMapID = glGetUniformLocation(shader, "normalMapSampler");
+
+        glActiveTexture(GL_TEXTURE1);
+        sf::Texture::bind(&normalMap);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+        glUniform1i(normalMapID, 1);
+    }
+
+
     glm::vec3 dirLight(3.0, -1.0, -1.0);
     glm::vec3 ptLight(3.5, 2.0, 4);
-
-    glUniform1i(textureID, 0);
 
     GLuint dirLightID = glGetUniformLocation(shader, "dirLight_in");
     glUniform3fv(dirLightID, 1, (float*) &dirLight);
@@ -194,8 +209,10 @@ bool DrawModel(glm::mat4& Model, glm::mat4& View, glm::mat4& Proj, GLuint& shade
     GLuint ptLightID = glGetUniformLocation(shader, "ptLightPos");
     glUniform3fv(ptLightID, 1, (float*) &ptLight);
 
+
     GLuint eyePosID = glGetUniformLocation(shader, "eyePos");
     glUniform3fv(eyePosID, 1, (float*) &eyePos);
+
 
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -223,7 +240,25 @@ bool DrawModel(glm::mat4& Model, glm::mat4& View, glm::mat4& Proj, GLuint& shade
     glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
+
+    if (useNormalMap)
+    {
+        glEnableVertexAttribArray(3);
+        glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+        glEnableVertexAttribArray(4);
+        glBindBuffer(GL_ARRAY_BUFFER, bitangentbuffer);
+        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    }
+
     glDrawArrays(GL_TRIANGLES, 0, vertCount*3);
+
+    if (useNormalMap)
+    {
+        glDisableVertexAttribArray(4);
+        glDisableVertexAttribArray(3);
+    }
 
     glDisableVertexAttribArray(2);
 
@@ -234,4 +269,43 @@ bool DrawModel(glm::mat4& Model, glm::mat4& View, glm::mat4& Proj, GLuint& shade
     glUseProgram(0);
 
     return true;
+}
+
+void computeTangentBasis(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& normals, vector<glm::vec3>& tangents, vector<glm::vec3>& bitangents)
+{
+    for ( int i=0; i<vertices.size(); i+=3){
+
+        // Shortcuts for vertices
+        glm::vec3 & v0 = vertices[i+0];
+        glm::vec3 & v1 = vertices[i+1];
+        glm::vec3 & v2 = vertices[i+2];
+
+        // Shortcuts for UVs
+        glm::vec2 & uv0 = uvs[i+0];
+        glm::vec2 & uv1 = uvs[i+1];
+        glm::vec2 & uv2 = uvs[i+2];
+
+        // Edges of the triangle : postion delta
+        glm::vec3 deltaPos1 = v1-v0;
+        glm::vec3 deltaPos2 = v2-v0;
+
+        // UV delta
+        glm::vec2 deltaUV1 = uv1-uv0;
+        glm::vec2 deltaUV2 = uv2-uv0;
+
+        float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+        glm::vec3 tangent = (deltaPos1 * deltaUV2.y   - deltaPos2 * deltaUV1.y)*r;
+        glm::vec3 bitangent = (deltaPos2 * deltaUV1.x   - deltaPos1 * deltaUV2.x)*r;
+
+        // Set the same tangent for all three vertices of the triangle.
+        tangents.push_back(tangent);
+        tangents.push_back(tangent);
+        tangents.push_back(tangent);
+
+        // Same thing for bitangents
+        bitangents.push_back(bitangent);
+        bitangents.push_back(bitangent);
+        bitangents.push_back(bitangent);
+
+    }
 }
