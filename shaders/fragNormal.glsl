@@ -21,14 +21,14 @@ void main()
 
     vec3 materialDiffuseColor = texture2D(textureSampler, UV).rgb;
     vec3 materialAmbientColor = materialDiffuseColor*vec3(0.2,0.2,0.2);
-    vec3 materialSpecularColor = vec3(0.3f, 0.3f, 0.3f);
+    vec3 materialSpecularColor = vec3(0.3f, 0.3f, 0.3f)*materialDiffuseColor;
 
     float dirLightAngle = max(dot(n, dl), 0.0);
     float ptLightAngle = clamp(dot(n, l), 0, 1);
     float ptLightReflect = clamp(dot(e, r), 0, 1);
 
     float dirLightPower = 1.0;
-    float ptLightPower = 2.0;
+    float ptLightPower = 5.0;
 
     vec3 dirLightColor = vec3(0.8, 0.6, 0.4);
     vec3 ptLightColor = vec3(1.0, 1.0, 0.0);

@@ -41,42 +41,19 @@ int main()
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
 
-    std::vector<glm::vec3> vertices, normals, tangents, bitangents;
-    std::vector<glm::vec2> texCoords;
-    loadOBJ("resources/models/casa.obj", vertices, texCoords, normals);
-    computeTangentBasis(vertices, texCoords, normals, tangents, bitangents);
-
     glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
-
     glGenBuffers(1, &uvbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-    glBufferData(GL_ARRAY_BUFFER, texCoords.size()*sizeof(glm::vec2), &texCoords[0], GL_STATIC_DRAW);
-
     glGenBuffers(1, &normalbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-    glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
-
     glGenBuffers(1, &tangentbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
-    glBufferData(GL_ARRAY_BUFFER, tangents.size()*sizeof(glm::vec3), &tangents[0], GL_STATIC_DRAW);
+    glGenBuffers(1, &bitangentbuffer);
 
-    glGenBuffers(1, &tangentbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
-    glBufferData(GL_ARRAY_BUFFER, bitangents.size()*sizeof(glm::vec3), &bitangents[0], GL_STATIC_DRAW);
+    Model house, cylinder;
+
+    house = loadModel("resources/models/casa.obj", "resources/textures/casa.png", "resources/normalMaps/casaNormal.jpg");
+    cylinder = loadModel("resources/models/cylinder.obj", "resources/textures/cylinderDiffuse.png", "resources/normalMaps/cylinderNormal.tga");
 
     GLuint shader = loadShaders("shaders/vert.glsl", "shaders/frag.glsl");
     GLuint normalShader = loadShaders("shaders/vertNormal.glsl", "shaders/fragNormal.glsl");
-
-    sf::Texture crateTexture;
-    crateTexture.loadFromFile("resources/textures/crate.jpg");
-
-    sf::Texture houseTexture;
-    houseTexture.loadFromFile("resources/textures/casa.png");
-
-    sf::Texture houseNormalMap;
-    houseNormalMap.loadFromFile("resources/normalMaps/casaNormal.jpg");
 
     sf::Clock c;
     c.restart();
@@ -117,10 +94,10 @@ int main()
 //        cout << dt << endl;
 
         int xpos, ypos;
-        xpos = sf::Mouse::getPosition().x-1;
-        ypos = sf::Mouse::getPosition().y-80;
+        xpos = sf::Mouse::getPosition().x-3;
+        ypos = sf::Mouse::getPosition().y-136;
 
-//        cout << xpos << " " << ypos << endl;
+//        cout << xpos << " " << ypos << " " << RESOLUTION_X/2 << " " << RESOLUTION_Y/2 << endl;
 
         sf::Vector2i mousePos = sf::Vector2i(RESOLUTION_X/2, RESOLUTION_Y/2);
         sf::Mouse::setPosition(mousePos, *window);
@@ -149,17 +126,23 @@ int main()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::mat4 Proj = glm::perspective(initialFOV, 4.0f / 3.0f, 0.1f, 100.0f);
+        glm::mat4 projMat = glm::perspective(initialFOV, 4.0f / 3.0f, 0.1f, 100.0f);
 
-        glm::mat4 View = glm::lookAt(eyePos, eyePos+eyeDirection, upVector);
+        glm::mat4 viewMat = glm::lookAt(eyePos, eyePos+eyeDirection, upVector);
 
-        glm::mat4 Model = glm::mat4(1.0f);
+        glm::mat4 modelMat = glm::mat4(1.0f);
 
-        drawModel(Model, View, Proj, normalShader, houseTexture, eyePos, vertices.size(), true, houseNormalMap);
+        setBuffers(house);
 
-        Model = glm::translate(20.0f, 0.0f, 0.0f)*glm::mat4(1.0f);
+        drawModel(modelMat, viewMat, projMat, shader, eyePos, house, false);
 
-        drawModel(Model, View, Proj, shader, houseTexture, eyePos, vertices.size(), false, houseNormalMap);
+        modelMat = glm::translate(20.0f, 0.0f, 0.0f)*glm::mat4(1.0f);
+        drawModel(modelMat, viewMat, projMat, shader, eyePos, house, false);
+
+        setBuffers(cylinder);
+
+        modelMat = glm::translate(4.0f, 2.0f, 5.0f)*glm::mat4(1.0f);
+        drawModel(modelMat, viewMat, projMat, normalShader, eyePos, cylinder, true);
 
         window->display();
     }

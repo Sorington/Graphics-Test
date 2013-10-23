@@ -24,12 +24,24 @@ extern GLuint vertexbuffer;
 extern GLuint tangentbuffer;
 extern GLuint bitangentbuffer;
 
+struct Model
+{
+    std::vector<glm::vec3> vertices, normals, tangents, bitangents;
+    std::vector<glm::vec2> texCoords;
+    sf::Texture texture;
+    sf::Texture normalMap;
+};
+
 bool loadOBJ(const char * path, std::vector<glm::vec3> & out_vertices, std::vector<glm::vec2> & out_uvs, std::vector<glm::vec3> & out_normals);
 
 GLuint loadShaders(const char * vertex_file_path, const char * fragment_file_path);
 
-bool drawModel(glm::mat4& Model, glm::mat4& View, glm::mat4& Proj, GLuint& shader, sf::Texture& texture, glm::vec3& eyePos, int vertCount, bool useNormalMap, sf::Texture normalMap);
+bool drawModel(glm::mat4& modelMat, glm::mat4& viewMat, glm::mat4& projMat, GLuint& shader, glm::vec3& eyePos, Model& m, bool useNormalMap);
 
 void computeTangentBasis(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& normals, vector<glm::vec3>& tangents, vector<glm::vec3>& bitangents);
+
+void setBuffers(Model& m);
+
+Model loadModel(string path, string texPath, string normalMapPath);
 
 #endif // TOOLS_H

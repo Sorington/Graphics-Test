@@ -49,6 +49,7 @@ void main()
     vec3 tangent_camspace = MV3x3 * normalize(tangent_in);
     vec3 bitangent_camspace = MV3x3 * normalize(bitangent_in);
 
+    // Let's compute the directions in tangent space
     mat3 TBN = transpose(mat3(tangent_camspace, bitangent_camspace, normal_camspace));
     vec3 lightDir_tangspace = TBN*lightDir_camspace;
     vec3 dirLightDirection_tangspace = TBN*dirLightDirection_camspace;

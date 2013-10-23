@@ -162,9 +162,13 @@ GLuint loadShaders(const char * vertex_file_path, const char * fragment_file_pat
     return ProgramID;
 }
 
-bool drawModel(glm::mat4& Model, glm::mat4& View, glm::mat4& Proj, GLuint& shader, sf::Texture& texture, glm::vec3& eyePos, int vertCount, bool useNormalMap, sf::Texture normalMap)
+bool drawModel(glm::mat4& modelMat, glm::mat4& viewMat, glm::mat4& projMat, GLuint& shader, glm::vec3& eyePos, Model& m, bool useNormalMap)
 {
-    glm::mat4 MVP = Proj*View*Model;
+    glm::mat4 MVP = projMat*viewMat*modelMat;
+
+    sf::Texture texture = m.texture;
+    sf::Texture normalMap = m.normalMap;
+    int vertCount = m.vertices.size();
 
     glUseProgram(shader);
 
@@ -173,8 +177,8 @@ bool drawModel(glm::mat4& Model, glm::mat4& View, glm::mat4& Proj, GLuint& shade
     GLuint matVID = glGetUniformLocation(shader, "V");
 
     glUniformMatrix4fv(matMVPID, 1, GL_FALSE, &MVP[0][0]);
-    glUniformMatrix4fv(matMID, 1, GL_FALSE, &Model[0][0]);
-    glUniformMatrix4fv(matVID, 1, GL_FALSE, &View[0][0]);
+    glUniformMatrix4fv(matMID, 1, GL_FALSE, &modelMat[0][0]);
+    glUniformMatrix4fv(matVID, 1, GL_FALSE, &viewMat[0][0]);
 
     GLuint textureID = glGetUniformLocation(shader, "textureSampler");
 
@@ -200,8 +204,8 @@ bool drawModel(glm::mat4& Model, glm::mat4& View, glm::mat4& Proj, GLuint& shade
     }
 
 
-    glm::vec3 dirLight(3.0, -1.0, -1.0);
-    glm::vec3 ptLight(3.5, 2.0, 4);
+    glm::vec3 dirLight(2.0, -1.0, -1.0);
+    glm::vec3 ptLight(4.0, 3.0, 7);
 
     GLuint dirLightID = glGetUniformLocation(shader, "dirLight_in");
     glUniform3fv(dirLightID, 1, (float*) &dirLight);
@@ -308,4 +312,34 @@ void computeTangentBasis(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, ve
         bitangents.push_back(bitangent);
 
     }
+}
+
+
+// Set the buffers for a given model
+void setBuffers(Model& m)
+{
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBufferData(GL_ARRAY_BUFFER, m.vertices.size()*sizeof(glm::vec3), &m.vertices[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+    glBufferData(GL_ARRAY_BUFFER, m.texCoords.size()*sizeof(glm::vec2), &m.texCoords[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+    glBufferData(GL_ARRAY_BUFFER, m.normals.size()*sizeof(glm::vec3), &m.normals[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+    glBufferData(GL_ARRAY_BUFFER, m.tangents.size()*sizeof(glm::vec3), &m.tangents[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, bitangentbuffer);
+    glBufferData(GL_ARRAY_BUFFER, m.bitangents.size()*sizeof(glm::vec3), &m.bitangents[0], GL_STATIC_DRAW);
+}
+
+Model loadModel(string path, string texPath, string normalMapPath)
+{
+    Model m;
+    loadOBJ(path.c_str(), m.vertices, m.texCoords, m.normals);
+    computeTangentBasis(m.vertices, m.texCoords, m.normals, m.tangents, m.bitangents);
+    m.texture.loadFromFile(texPath);
+    m.normalMap.loadFromFile(normalMapPath);
+    return m;
 }
