@@ -9,6 +9,9 @@ GLuint vertexbuffer;
 GLuint tangentbuffer;
 GLuint bitangentbuffer;
 
+glm::vec3 dirLight;
+glm::vec3 ptLight;
+
 int main()
 {
     sf::Window *window = new sf::Window(sf::VideoMode(RESOLUTION_X, RESOLUTION_Y, 32), "Graphics Test", sf::Style::Default, sf::ContextSettings(32, 8, 4, 4, 2));
@@ -49,8 +52,8 @@ int main()
 
     Model house, cylinder;
 
-    house = loadModel("resources/models/casa.obj", "resources/textures/casa.png", "resources/normalMaps/casaNormal.jpg");
-    cylinder = loadModel("resources/models/cylinder.obj", "resources/textures/cylinderDiffuse.png", "resources/normalMaps/cylinderNormal.tga");
+    house = loadModel("resources/models/casa.obj", "resources/textures/casa.png", DEFAULT_SPECULAR, "resources/normalMaps/casaNormal.jpg");
+    cylinder = loadModel("resources/models/cylinder.obj", "resources/textures/cylinderDiffuse.png", "resources/textures/cylinderSpecular.png", "resources/normalMaps/cylinderNormal.tga");
 
     GLuint shader = loadShaders("shaders/vert.glsl", "shaders/frag.glsl");
     GLuint normalShader = loadShaders("shaders/vertNormal.glsl", "shaders/fragNormal.glsl");
@@ -90,12 +93,13 @@ int main()
         lastTime = currentTime;
 
         float dt = deltaTime.asSeconds();
+        float t = c.getElapsedTime().asSeconds();
 
 //        cout << dt << endl;
 
         int xpos, ypos;
-        xpos = sf::Mouse::getPosition().x-3;
-        ypos = sf::Mouse::getPosition().y-136;
+        xpos = sf::Mouse::getPosition(*window).x;
+        ypos = sf::Mouse::getPosition(*window).y;
 
 //        cout << xpos << " " << ypos << " " << RESOLUTION_X/2 << " " << RESOLUTION_Y/2 << endl;
 
@@ -124,6 +128,9 @@ int main()
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) eyePos += right*dt*speed;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) eyePos -= right*dt*speed;
 
+        dirLight = glm::vec3(sin(t), -1.0, cos(t));
+        ptLight = glm::vec3(4.0, 3.0, 7);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 projMat = glm::perspective(initialFOV, 4.0f / 3.0f, 0.1f, 100.0f);
@@ -134,7 +141,7 @@ int main()
 
         setBuffers(house);
 
-        drawModel(modelMat, viewMat, projMat, shader, eyePos, house, false);
+        //drawModel(modelMat, viewMat, projMat, shader, eyePos, house, false);
 
         modelMat = glm::translate(20.0f, 0.0f, 0.0f)*glm::mat4(1.0f);
         drawModel(modelMat, viewMat, projMat, shader, eyePos, house, false);

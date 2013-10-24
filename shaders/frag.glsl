@@ -9,6 +9,7 @@ in vec3 eyeDir;
 in float dist;
 
 uniform sampler2D textureSampler;
+uniform sampler2D specularMapSampler;
 
 void main()
 {
@@ -19,8 +20,8 @@ void main()
     vec3 r = reflect(-l,n);
 
     vec3 materialDiffuseColor = texture2D(textureSampler, UV).rgb;
-    vec3 materialAmbientColor = materialDiffuseColor*vec3(0.2,0.2,0.2);
-    vec3 materialSpecularColor = materialDiffuseColor;
+    vec3 materialAmbientColor = materialDiffuseColor*vec3(0.3,0.3,0.3);
+    vec3 materialSpecularColor = texture2D(specularMapSampler, UV).rgb;
 
     float dirLightAngle = max(dot(n, dl), 0.0);
     float ptLightAngle = clamp(dot(n, l), 0, 1);

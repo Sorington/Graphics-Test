@@ -16,6 +16,9 @@
 #include <vector>
 #include <iostream>
 
+#define DEFAULT_SPECULAR "resources/textures/defaultSpecular.png"
+#define DEFAULT_DIFFUSE "resources/textures/defaultDiffuse.png"
+
 using namespace std;
 
 extern GLuint normalbuffer;
@@ -24,12 +27,16 @@ extern GLuint vertexbuffer;
 extern GLuint tangentbuffer;
 extern GLuint bitangentbuffer;
 
+extern glm::vec3 dirLight;
+extern glm::vec3 ptLight;
+
 struct Model
 {
     std::vector<glm::vec3> vertices, normals, tangents, bitangents;
     std::vector<glm::vec2> texCoords;
     sf::Texture texture;
     sf::Texture normalMap;
+    sf::Texture specularMap;
 };
 
 bool loadOBJ(const char * path, std::vector<glm::vec3> & out_vertices, std::vector<glm::vec2> & out_uvs, std::vector<glm::vec3> & out_normals);
@@ -42,6 +49,6 @@ void computeTangentBasis(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, ve
 
 void setBuffers(Model& m);
 
-Model loadModel(string path, string texPath, string normalMapPath);
+Model loadModel(string path, string texPath, string specularPath, string normalMapPath);
 
 #endif // TOOLS_H

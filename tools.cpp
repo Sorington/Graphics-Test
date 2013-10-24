@@ -168,6 +168,7 @@ bool drawModel(glm::mat4& modelMat, glm::mat4& viewMat, glm::mat4& projMat, GLui
 
     sf::Texture texture = m.texture;
     sf::Texture normalMap = m.normalMap;
+    sf::Texture specularMap = m.specularMap;
     int vertCount = m.vertices.size();
 
     glUseProgram(shader);
@@ -187,8 +188,22 @@ bool drawModel(glm::mat4& modelMat, glm::mat4& viewMat, glm::mat4& projMat, GLui
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     glUniform1i(textureID, 0);
+
+    GLuint specularMapID = glGetUniformLocation(shader, "specularMapSampler");
+
+    glActiveTexture(GL_TEXTURE2);
+    sf::Texture::bind(&specularMap);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glUniform1i(specularMapID, 2);
 
     if (useNormalMap)
     {
@@ -199,13 +214,13 @@ bool drawModel(glm::mat4& modelMat, glm::mat4& viewMat, glm::mat4& projMat, GLui
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
         glUniform1i(normalMapID, 1);
+
+
     }
-
-
-    glm::vec3 dirLight(2.0, -1.0, -1.0);
-    glm::vec3 ptLight(4.0, 3.0, 7);
 
     GLuint dirLightID = glGetUniformLocation(shader, "dirLight_in");
     glUniform3fv(dirLightID, 1, (float*) &dirLight);
@@ -334,12 +349,13 @@ void setBuffers(Model& m)
     glBufferData(GL_ARRAY_BUFFER, m.bitangents.size()*sizeof(glm::vec3), &m.bitangents[0], GL_STATIC_DRAW);
 }
 
-Model loadModel(string path, string texPath, string normalMapPath)
+Model loadModel(string path, string texPath, string specularPath, string normalMapPath)
 {
     Model m;
     loadOBJ(path.c_str(), m.vertices, m.texCoords, m.normals);
     computeTangentBasis(m.vertices, m.texCoords, m.normals, m.tangents, m.bitangents);
     m.texture.loadFromFile(texPath);
+    m.specularMap.loadFromFile(specularPath);
     m.normalMap.loadFromFile(normalMapPath);
     return m;
 }
