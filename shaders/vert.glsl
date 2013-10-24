@@ -9,7 +9,6 @@ uniform mat4 V;
 
 uniform vec3 dirLight_in;
 uniform vec3 ptLightPos;
-uniform vec3 eyePos;
 
 out vec2 UV;
 out vec3 normal;
@@ -18,8 +17,7 @@ out vec3 ptLight;
 out vec3 eyeDir;
 out float dist;
 
-void main()
-{
+void main() {
     vec4 v = vec4(position, 1.0);
     gl_Position =  MVP * v;
 
