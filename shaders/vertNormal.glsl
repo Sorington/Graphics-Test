@@ -11,7 +11,6 @@ uniform mat4 V;
 
 uniform vec3 dirLight_in;
 uniform vec3 ptLightPos;
-uniform vec3 eyePos;
 
 out vec2 UV;
 out vec3 dirLight;
