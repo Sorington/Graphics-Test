@@ -1,7 +1,7 @@
 #include "tools.h"
 
-#define RESOLUTION_X 920
-#define RESOLUTION_Y 690
+#define RESOLUTION_X 1024
+#define RESOLUTION_Y 768
 
 GLuint normalbuffer;
 GLuint uvbuffer;
@@ -14,7 +14,7 @@ glm::vec3 ptLight;
 
 int main()
 {
-    sf::Window *window = new sf::Window(sf::VideoMode(RESOLUTION_X, RESOLUTION_Y, 32), "Graphics Test", sf::Style::Default, sf::ContextSettings(32, 8, 4, 4, 2));
+    sf::Window *window = new sf::Window(sf::VideoMode(RESOLUTION_X, RESOLUTION_Y, 32), "Graphics Test", sf::Style::Default, sf::ContextSettings(32, 24, 4, 4, 2));
 
     // Initialize GLEW
     glewExperimental= true; // Needed in core profile
@@ -49,6 +49,50 @@ int main()
     glGenBuffers(1, &normalbuffer);
     glGenBuffers(1, &tangentbuffer);
     glGenBuffers(1, &bitangentbuffer);
+
+    GLuint fbo = 0;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    GLuint renderTexture;
+    glGenTextures(1, &renderTexture);
+    glBindTexture(GL_TEXTURE_2D, renderTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, RESOLUTION_X, RESOLUTION_Y, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    GLuint depthRenderbuffer;
+    glGenRenderbuffers(1, &depthRenderbuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, RESOLUTION_X, RESOLUTION_Y);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
+
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderTexture, 0);
+    GLenum drawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+    glDrawBuffers(1, drawBuffers);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        return false;
+
+    GLuint quad_vaoID;
+    glGenVertexArrays(1, &quad_vaoID);
+    glBindVertexArray(quad_vaoID);
+
+    static const GLfloat g_quad_vertex_buffer_data[] = {
+        -1.0f, -1.0f, 0.0f,
+        1.0f, -1.0f, 0.0f,
+        -1.0f,  1.0f, 0.0f,
+        -1.0f,  1.0f, 0.0f,
+        1.0f, -1.0f, 0.0f,
+        1.0f,  1.0f, 0.0f,
+    };
+
+    GLuint quad_vbo;
+    glGenBuffers(1, &quad_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, quad_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW);
+
+    GLuint quad_shader = loadShaders("shaders/vertFBO.glsl", "shaders/fragFBO.glsl");
 
     Model house, cylinder;
 
@@ -131,13 +175,16 @@ int main()
         dirLight = glm::vec3(sin(t), -1.0, cos(t));
         ptLight = glm::vec3(4.0, 3.0, 7);
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         glm::mat4 projMat = glm::perspective(initialFOV, 4.0f / 3.0f, 0.1f, 100.0f);
 
         glm::mat4 viewMat = glm::lookAt(eyePos, eyePos+eyeDirection, upVector);
 
         glm::mat4 modelMat = glm::mat4(1.0f);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glViewport(0, 0, RESOLUTION_X, RESOLUTION_Y);
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         setBuffers(house);
 
@@ -150,6 +197,33 @@ int main()
 
         modelMat = glm::translate(4.0f, 2.0f, 5.0f)*glm::mat4(1.0f);
         drawModel(modelMat, viewMat, projMat, normalShader, eyePos, cylinder, true);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, RESOLUTION_X, RESOLUTION_Y);
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glUseProgram(quad_shader);
+
+        GLuint renderTexID = glGetUniformLocation(quad_shader, "renderTexture");
+        GLuint timeID = glGetUniformLocation(quad_shader, "time");
+
+        glActiveTexture(GL_TEXTURE0);
+
+        glBindTexture(GL_TEXTURE_2D, renderTexture);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        glUniform1i(renderTexID, 0);
+
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, quad_vbo);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        glDisableVertexAttribArray(0);
 
         window->display();
     }
