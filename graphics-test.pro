@@ -12,7 +12,9 @@ OTHER_FILES += \
     shaders/fragNormal.glsl \
     shaders/vertNormal.glsl \
     shaders/fragFBO.glsl \
-    shaders/vertFBO.glsl
+    shaders/vertFBO.glsl \
+    shaders/lightFrag.glsl \
+    shaders/lightVert.glsl
 
 HEADERS += \
     tools.h

@@ -8,6 +8,7 @@ layout(location = 4) in vec3 bitangent_in;
 uniform mat4 MVP;
 uniform mat4 M;
 uniform mat4 V;
+uniform mat4 depthBiasMVP;
 
 uniform vec3 dirLight_in;
 uniform vec3 ptLightPos;
@@ -28,7 +29,7 @@ void main()
     mat3 MV3x3 = mat3(MV[0].xyz, MV[1].xyz, MV[2].xyz);
 
     // Vector that goes from the vertex to the light, in camera space. M is ommited because it's identity.
-    vec3 dirLightDirection_camspace = vec4(V*vec4(-dirLight_in, 0)).xyz;
+    vec3 dirLightDirection_camspace = vec4(V*vec4(dirLight_in, 0)).xyz;
 
     // Position of the vertex, in worldspace : M * position
     vec3 vertexPos_worldspace = vec4(M * vec4(position,1)).xyz;

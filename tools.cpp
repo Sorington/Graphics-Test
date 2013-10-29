@@ -162,7 +162,7 @@ GLuint loadShaders(const char * vertex_file_path, const char * fragment_file_pat
     return ProgramID;
 }
 
-bool drawModel(glm::mat4& modelMat, glm::mat4& viewMat, glm::mat4& projMat, GLuint& shader, glm::vec3& eyePos, Model& m, bool useNormalMap)
+bool drawModel(glm::mat4& modelMat, glm::mat4& viewMat, glm::mat4& projMat, glm::mat4& depthBiasMVP, GLuint& shader, GLuint& shadowMap, glm::vec3& eyePos, Model& m, bool useNormalMap)
 {
     glm::mat4 MVP = projMat*viewMat*modelMat;
 
@@ -176,12 +176,16 @@ bool drawModel(glm::mat4& modelMat, glm::mat4& viewMat, glm::mat4& projMat, GLui
     GLuint matMVPID = glGetUniformLocation(shader, "MVP");
     GLuint matMID = glGetUniformLocation(shader, "M");
     GLuint matVID = glGetUniformLocation(shader, "V");
+    GLuint depthMVPID = glGetUniformLocation(shader, "depthBiasMVP");
 
     glUniformMatrix4fv(matMVPID, 1, GL_FALSE, &MVP[0][0]);
     glUniformMatrix4fv(matMID, 1, GL_FALSE, &modelMat[0][0]);
     glUniformMatrix4fv(matVID, 1, GL_FALSE, &viewMat[0][0]);
+    glUniformMatrix4fv(depthMVPID, 1, GL_FALSE, &depthBiasMVP[0][0]);
 
     GLuint textureID = glGetUniformLocation(shader, "textureSampler");
+    GLuint shadowMapID = glGetUniformLocation(shader, "shadowMap");
+    GLuint specularMapID = glGetUniformLocation(shader, "specularMapSampler");
 
     glActiveTexture(GL_TEXTURE0);
     sf::Texture::bind(&texture);
@@ -195,8 +199,13 @@ bool drawModel(glm::mat4& modelMat, glm::mat4& viewMat, glm::mat4& projMat, GLui
 
     glUniform1i(textureID, 0);
 
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, shadowMap);
 
-    GLuint specularMapID = glGetUniformLocation(shader, "specularMapSampler");
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    glUniform1i(shadowMapID, 3);
 
     glActiveTexture(GL_TEXTURE2);
     sf::Texture::bind(&specularMap);
@@ -209,7 +218,6 @@ bool drawModel(glm::mat4& modelMat, glm::mat4& viewMat, glm::mat4& projMat, GLui
     glGenerateMipmap(GL_TEXTURE_2D);
 
     glUniform1i(specularMapID, 2);
-
 
     if (useNormalMap)
     {
@@ -298,9 +306,9 @@ bool drawModel(glm::mat4& modelMat, glm::mat4& viewMat, glm::mat4& projMat, GLui
     return true;
 }
 
-void computeTangentBasis(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& normals, vector<glm::vec3>& tangents, vector<glm::vec3>& bitangents)
+void computeTangentBasis(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& tangents, vector<glm::vec3>& bitangents)
 {
-    for ( int i=0; i<vertices.size(); i+=3){
+    for ( int i=0; i<int(vertices.size()); i+=3){
 
         // Shortcuts for vertices
         glm::vec3 & v0 = vertices[i+0];
@@ -361,7 +369,7 @@ Model loadModel(string path, string texPath, string specularPath, string normalM
 {
     Model m;
     loadOBJ(path.c_str(), m.vertices, m.texCoords, m.normals);
-    computeTangentBasis(m.vertices, m.texCoords, m.normals, m.tangents, m.bitangents);
+    computeTangentBasis(m.vertices, m.texCoords, m.tangents, m.bitangents);
     m.texture.loadFromFile(texPath);
     m.specularMap.loadFromFile(specularPath);
     m.normalMap.loadFromFile(normalMapPath);

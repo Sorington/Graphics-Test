@@ -43,9 +43,9 @@ bool loadOBJ(const char * path, std::vector<glm::vec3> & out_vertices, std::vect
 
 GLuint loadShaders(const char * vertex_file_path, const char * fragment_file_path);
 
-bool drawModel(glm::mat4& modelMat, glm::mat4& viewMat, glm::mat4& projMat, GLuint& shader, glm::vec3& eyePos, Model& m, bool useNormalMap);
+bool drawModel(glm::mat4& modelMat, glm::mat4& viewMat, glm::mat4& projMat, glm::mat4& depthBiasMVP, GLuint& shader, GLuint& shadowMap, glm::vec3& eyePos, Model& m, bool useNormalMap);
 
-void computeTangentBasis(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& normals, vector<glm::vec3>& tangents, vector<glm::vec3>& bitangents);
+void computeTangentBasis(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& tangents, vector<glm::vec3>& bitangents);
 
 void setBuffers(Model& m);
 

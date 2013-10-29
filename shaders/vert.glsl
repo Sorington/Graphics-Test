@@ -6,6 +6,7 @@ layout(location = 2) in vec3 normal_in;
 uniform mat4 MVP;
 uniform mat4 M;
 uniform mat4 V;
+uniform mat4 depthBiasMVP;
 
 uniform vec3 dirLight_in;
 uniform vec3 ptLightPos;
@@ -16,15 +17,18 @@ out vec3 dirLight;
 out vec3 ptLight;
 out vec3 eyeDir;
 out float dist;
+out vec4 shadowCoord;
 
 void main() {
     vec4 v = vec4(position, 1.0);
     gl_Position =  MVP * v;
 
+    shadowCoord = depthBiasMVP * v;
+
     dist = distance(ptLightPos, position);
 
     // Vector that goes from the vertex to the light, in camera space. M is ommited because it's identity.
-    vec3 dirLightDirection_camspace = vec4(V*vec4(-dirLight_in, 0)).xyz;
+    vec3 dirLightDirection_camspace = vec4(V*vec4(dirLight_in, 0)).xyz;
 
     // Position of the vertex, in worldspace : M * position
     vec3 vertexPos_worldspace = vec4(M * vec4(position,1)).xyz;
