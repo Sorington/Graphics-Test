@@ -188,14 +188,14 @@ int main()
 
         setBuffers(house);
 
-        //drawModel(modelMat, viewMat, projMat, shader, eyePos, house, false);
+        drawModel(modelMat, viewMat, projMat, shader, eyePos, house, false);
 
         modelMat = glm::translate(20.0f, 0.0f, 0.0f)*glm::mat4(1.0f);
-        drawModel(modelMat, viewMat, projMat, shader, eyePos, house, false);
+        //drawModel(modelMat, viewMat, projMat, shader, eyePos, house, false);
 
         setBuffers(cylinder);
 
-        modelMat = glm::translate(4.0f, 2.0f, 5.0f)*glm::mat4(1.0f);
+        modelMat = glm::translate(4.0f, 1.0f, 5.0f)*glm::mat4(1.0f);
         drawModel(modelMat, viewMat, projMat, normalShader, eyePos, cylinder, true);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -206,7 +206,6 @@ int main()
         glUseProgram(quad_shader);
 
         GLuint renderTexID = glGetUniformLocation(quad_shader, "renderTexture");
-        GLuint timeID = glGetUniformLocation(quad_shader, "time");
 
         glActiveTexture(GL_TEXTURE0);
 
