@@ -223,7 +223,7 @@ int main()
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) eyePos += right*dt*speed;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) eyePos -= right*dt*speed;
 
-        dirLight = glm::vec3(sin(t/2), 0.5, cos(t/2));
+        dirLight = glm::vec3(sin(t/4), 0.5, cos(t/4));
         ptLight = glm::vec3(4.0, 3.0, 7);
 
 
